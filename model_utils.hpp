@@ -90,7 +90,7 @@ namespace med {
      */
     void save_shape_predictor_model(
         dlib::shape_predictor &sp,
-        const string &save_path,
+        const std::string &save_path,
         const float prune_thresh=0.0001,
         const unsigned long quantization_num=512,
         const unsigned long version=0) {
@@ -441,7 +441,7 @@ namespace med {
             for (int c = 0; c < cascade_depth; ++ c) {
                 for (int r = 0; r < num_trees_per_cascade_level; ++ r) {
                     auto &tree = sp.forests[c][r];
-                    auto &leaf_values = sp.leaf_values;
+                    auto &leaf_values = tree.leaf_values;
                     for (int leaf_value_idx = 0; leaf_value_idx < num_leaves; ++ leaf_value_idx) {
                         dlib::matrix<float,0,1> _leaf;
                         _leaf.set_size(landmark_num * 2, 1);
