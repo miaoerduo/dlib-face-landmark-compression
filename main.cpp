@@ -3,7 +3,7 @@
 //  dlib_utils
 //
 //  Created by zhaoyu on 2018/1/8.
-//  Copyright © 2018年 zhaoyu. All rights reserved.
+//  Copyright © 2018 zhaoyu. All rights reserved.
 //
 
 #include <iostream>
@@ -20,13 +20,13 @@ int main(int argc, const char * argv[]) {
     
     dlib::shape_predictor sp;
     
-    // 加载模型
+    // load model
     dlib::deserialize(argv[1]) >> sp;
     
-    // 压缩模型
+    // compress model
     med::save_shape_predictor_model(sp, argv[2], 0.0001, 512);
     
-    // 加载压缩模型
+    // load compressed model
     dlib::shape_predictor sp2;
     med::load_shape_predictor_model(sp2, argv[2]);
     

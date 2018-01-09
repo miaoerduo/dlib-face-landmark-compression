@@ -3,7 +3,7 @@
 //  dlib_utils
 //
 //  Created by zhaoyu on 2018/1/8.
-//  Copyright © 2018年 zhaoyu. All rights reserved.
+//  Copyright © 2018 zhaoyu. All rights reserved.
 
 #ifndef huffman_h
 #define huffman_h
@@ -105,21 +105,21 @@ namespace med {
         return lookup;
     }
     
-    HuffmanTree * build_tree_from_lookup_table(codetable &m) {
+    HuffmanTree * build_tree_from_lookup_table(const codetable &m) {
         using namespace std;
-        HuffmanTree *root = new HuffmanTree(0, 0, NULL, NULL);
-        for (auto it: m) {
+        HuffmanTree *root = new HuffmanTree(0, 0);
+        for (auto &it: m) {
             int k = it.first;
-            code_t bits = it.second;
+            code_t &bits = it.second;
             HuffmanTree * t = root;
             for (int idx = 0; idx < bits.size(); ++ idx) {
                 if (bits[idx] == false) {
-                    // 左
-                    if (!t->left) t->left = new HuffmanTree(0, 0, NULL, NULL);
+                    // left
+                    if (!t->left) t->left = new HuffmanTree(0, 0);
                     t = t->left;
                 } else {
-                    // 右
-                    if (!t->right) t->right = new HuffmanTree(0, 0, NULL, NULL);
+                    // right
+                    if (!t->right) t->right = new HuffmanTree(0, 0);
                     t = t->right;
                 }
             }

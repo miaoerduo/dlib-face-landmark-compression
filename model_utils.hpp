@@ -3,7 +3,7 @@
 //  dlib_utils
 //
 //  Created by zhaoyu on 2018/1/8.
-//  Copyright © 2018年 zhaoyu. All rights reserved.
+//  Copyright © 2018 zhaoyu. All rights reserved.
 //
 
 #ifndef model_utils_h
@@ -20,7 +20,7 @@
 namespace med {
     
     /**
-     *  类型定义
+     *  data type definition
      */
     typedef char   int8;
     typedef short  int16;
@@ -34,7 +34,7 @@ namespace med {
     typedef unsigned long  uint64;
     
     /**
-     *  读写函数
+     *  utils for reading and writing
      */
     template <typename T>
     void write_single_value(std::ofstream &os, const T &data) {
@@ -86,7 +86,7 @@ namespace med {
     }
     
     /**
-     *  转换shape predictor模型
+     *  compress shape predictor model
      */
     void save_shape_predictor_model(
         dlib::shape_predictor &sp,
@@ -99,7 +99,7 @@ namespace med {
         std::ofstream os(save_path, std::ofstream::binary);
         
         /**
-         *  常量
+         *  const value
          */
         const unsigned long cascade_depth = sp.forests.size();
         const unsigned long num_trees_per_cascade_level = sp.forests[0].size();
@@ -112,7 +112,7 @@ namespace med {
         // const unsigned long version = 0;
         
         /**
-         *  保存常量
+         *  save const value
          */
         unsigned long data_length = 8 * sizeof(unsigned long);
         write_single_value(os, data_length);
@@ -126,7 +126,7 @@ namespace med {
         write_single_value(os, prune_thresh);
         
         /**
-         *  初始化形状
+         *  initial_shape
          */
         data_length = landmark_num * 2 * sizeof(float);
         write_single_value(os, data_length);
@@ -137,7 +137,7 @@ namespace med {
         }
         
         /**
-         *  锚点
+         *  anchor_idx
          */
         data_length = cascade_depth * feature_pool_size * sizeof(uint8);
         write_single_value(os, data_length);
@@ -211,7 +211,7 @@ namespace med {
         /*** step2 quantization ***/
         float quantization_precision = (leaf_max_value - leaf_min_value) / quantization_num;
         
-        unordered_map<int, unsigned long> quantization_frequency;   // 量化后的每个数字的频率统计
+        unordered_map<int, unsigned long> quantization_frequency;   // count frequency
         
         for (int r = 0; r < cascade_depth; ++ r) {
             for (int c = 0; c < num_trees_per_cascade_level; ++ c) {
@@ -231,11 +231,10 @@ namespace med {
         vector<pair<int, unsigned long> >cfvec(quantization_frequency.begin(), quantization_frequency.end());
         
         HuffmanTree *htree = build_tree(cfvec);
-        codetable ctbl = build_lookup_table(htree);     // 码本
+        codetable ctbl = build_lookup_table(htree);
         
-        /*** step4 存放码本 ***/
+        /*** step4 save the code table ***/
         
-        // 总长度
         data_length = sizeof(float) + sizeof(unsigned long);    //quantization_precision + ctbl size
         for (auto it: ctbl) {
             // value + code_size + code_t
@@ -246,7 +245,7 @@ namespace med {
         unsigned long ctbl_size = ctbl.size();
         write_single_value(os, ctbl_size);
         
-        // 具体内容
+        // code table content
         for (auto it: ctbl) {
             int k = it.first;
             vector<bool> bits = it.second;
@@ -258,7 +257,7 @@ namespace med {
             write_char_vec(os, data);
         }
         
-        /*** step5 编码 ***/
+        /*** step5 encode ***/
         vector<bool> encode_data_bin;
         for (int r = 0; r < cascade_depth; ++ r) {
             for (int c = 0; c < num_trees_per_cascade_level; ++ c) {
@@ -283,7 +282,7 @@ namespace med {
     }
     
     /**
-     *  加载压缩后的shape predictor模型
+     *  load a compressed shape predictor model
      */
     void load_shape_predictor_model(dlib::shape_predictor &sp, const std::string&filename) {
         
@@ -291,7 +290,7 @@ namespace med {
         std::ifstream is(filename, std::ofstream::binary);
         
         /**
-         *  常量
+         *  constant values
          */
         unsigned long data_length;
         unsigned long version;
@@ -314,7 +313,7 @@ namespace med {
         read_single_value(is, prune_thresh);
         
         /**
-         *  初始化形状
+         *  initial shape
          */
         read_single_value(is, data_length);
         
@@ -329,7 +328,7 @@ namespace med {
         }
         
         /**
-         *  锚点
+         *  anchor_idx
          */
         read_single_value(is, data_length);
         sp.anchor_idx = vector<vector<unsigned long> >(
@@ -405,7 +404,7 @@ namespace med {
          *  leaf values
          */
         
-        /*** 码本 ***/
+        /*** code table ***/
         read_single_value(is, data_length);
         float quantization_precision = 0.;
         read_single_value(is, quantization_precision);
@@ -429,7 +428,7 @@ namespace med {
         
         auto *huffman_tree = build_tree_from_lookup_table(ctbl);
         
-        /*** 读取叶子数值 ***/
+        /*** read and decode leaf values ***/
         read_single_value(is, data_length);
         
         {
@@ -442,6 +441,7 @@ namespace med {
             for (int c = 0; c < cascade_depth; ++ c) {
                 for (int r = 0; r < num_trees_per_cascade_level; ++ r) {
                     auto &tree = sp.forests[c][r];
+                    auto &leaf_values = sp.leaf_values;
                     for (int leaf_value_idx = 0; leaf_value_idx < num_leaves; ++ leaf_value_idx) {
                         dlib::matrix<float,0,1> _leaf;
                         _leaf.set_size(landmark_num * 2, 1);
@@ -459,9 +459,9 @@ namespace med {
                             _leaf(_idx) = t->c * quantization_precision;
                         }
                         
-                        tree.leaf_values.push_back(_leaf);
+                        leaf_values.push_back(_leaf);
                     }
-                    tree.leaf_values.reserve(tree.leaf_values.size());
+                    leaf_values.reserve(leaf_values.size());
                 }
             }
         }
