@@ -15,3 +15,8 @@ cd dlib-face-landmark-compression
 g++ main.cpp -o main.bin -I ./ -I DLIB_PATH/include -L DLIB_PATH/lib -ldlib -std=c++11
 ./main.bin src_dlib_shape_predictor_model dest_model
 ```
+
+为了方便大家的调试，这里上传一个dlib的68点landmark的原模型和使用main.cpp的代码压缩之后的模型。
+
+链接: https://pan.baidu.com/s/1pMwHtpx 密码: mqt5
+
