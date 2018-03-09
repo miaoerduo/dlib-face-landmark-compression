@@ -91,9 +91,9 @@ namespace med {
     void save_shape_predictor_model(
         dlib::shape_predictor &sp,
         const std::string &save_path,
-        const float prune_thresh=0.0001,
-        const unsigned long quantization_num=512,
-        const unsigned long version=0) {
+        const float _prune_thresh=0.0001,
+        const unsigned long long _quantization_num=512,
+        const unsigned long long _version=0) {
         
         using namespace std;
         std::ofstream os(save_path, std::ofstream::binary);
@@ -101,20 +101,21 @@ namespace med {
         /**
          *  const value
          */
-        const unsigned long cascade_depth = sp.forests.size();
-        const unsigned long num_trees_per_cascade_level = sp.forests[0].size();
-        const unsigned long num_leaves = sp.forests[0][0].num_leaves();
-        const unsigned long tree_depth = static_cast<unsigned long>(std::log(num_leaves) / std::log(2));
-        const unsigned long feature_pool_size = sp.anchor_idx[0].size();
-        const unsigned long landmark_num = sp.initial_shape.size() / 2;
-        // const unsigned long quantization_num = 512;
-        // const float prune_thresh = 0.0001;
-        // const unsigned long version = 0;
+        const uint64 version = _version;
+        const uint64 cascade_depth = sp.forests.size();
+        const uint64 num_trees_per_cascade_level = sp.forests[0].size();
+        const uint64 num_leaves = sp.forests[0][0].num_leaves();
+        const uint64 tree_depth = static_cast<uint64>(std::log(num_leaves) / std::log(2));
+        const uint64 feature_pool_size = sp.anchor_idx[0].size();
+        const uint64 landmark_num = sp.initial_shape.size() / 2;
+        const uint64 quantization_num = _quantization_num;
+        const float32 prune_thresh = _prune_thresh;
+        
         
         /**
          *  save const value
          */
-        unsigned long data_length = 8 * sizeof(unsigned long);
+        unsigned long data_length = 7 * sizeof(uint64) + sizeof(float32);
         write_single_value(os, data_length);
         write_single_value(os, version);
         write_single_value(os, cascade_depth);
@@ -128,11 +129,11 @@ namespace med {
         /**
          *  initial_shape
          */
-        data_length = landmark_num * 2 * sizeof(float);
+        data_length = landmark_num * 2 * sizeof(float32);
         write_single_value(os, data_length);
         
         for (auto it = sp.initial_shape.begin(); it != sp.initial_shape.end(); ++ it) {
-            auto data = *it;
+            auto data = static_cast<float32>(*it);
             write_single_value(os, data);
         }
         
@@ -152,12 +153,12 @@ namespace med {
         /**
          *  deltas
          */
-        data_length = cascade_depth * feature_pool_size * 2 * sizeof(float);
+        data_length = cascade_depth * feature_pool_size * 2 * sizeof(float32);
         write_single_value(os, data_length);
         for (int r = 0; r < cascade_depth; ++ r) {
             for (int c = 0; c < feature_pool_size; ++ c) {
-                write_single_value(os, sp.deltas[r][c](0));
-                write_single_value(os, sp.deltas[r][c](1));
+                write_single_value(os, static_cast<float32>(sp.deltas[r][c](0)));
+                write_single_value(os, static_cast<float32>(sp.deltas[r][c](1)));
             }
         }
         
@@ -168,7 +169,7 @@ namespace med {
         /**
          *  splits
          */
-        data_length = cascade_depth * num_trees_per_cascade_level * (num_leaves - 1) * (sizeof(uint16) + sizeof(uint16) + sizeof(float));
+        data_length = cascade_depth * num_trees_per_cascade_level * (num_leaves - 1) * (sizeof(uint16) + sizeof(uint16) + sizeof(float32));
         write_single_value(os, data_length);
         for (int r = 0; r < cascade_depth; ++ r) {
             for (int c = 0; c < num_trees_per_cascade_level; ++ c) {
@@ -178,7 +179,7 @@ namespace med {
                 for (auto &split: splits) {
                     uint16 idx1 = static_cast<uint16>(split.idx1);
                     uint16 idx2 = static_cast<uint16>(split.idx2);
-                    float thresh = split.thresh;
+                    float32 thresh = static_cast<float32>(split.thresh);
                     write_single_value(os, idx1);
                     write_single_value(os, idx2);
                     write_single_value(os, thresh);
@@ -209,7 +210,7 @@ namespace med {
         }
         
         /*** step2 quantization ***/
-        float quantization_precision = (leaf_max_value - leaf_min_value) / quantization_num;
+        float32 quantization_precision = (leaf_max_value - leaf_min_value) / quantization_num;
         
         unordered_map<int, unsigned long> quantization_frequency;   // count frequency
         
@@ -233,16 +234,19 @@ namespace med {
         HuffmanTree *htree = build_tree(cfvec);
         codetable ctbl = build_lookup_table(htree);
         
+        destroy_tree(htree);
+        htree = NULL;
+        
         /*** step4 save the code table ***/
         
-        data_length = sizeof(float) + sizeof(unsigned long);    //quantization_precision + ctbl size
+        data_length = sizeof(float32) + sizeof(uint64);    //quantization_precision + ctbl size
         for (auto it: ctbl) {
             // value + code_size + code_t
             data_length += sizeof(int) + sizeof(uint8) + (it.second.size() + 7) / 8;
         }
         write_single_value(os, data_length);
         write_single_value(os, quantization_precision);
-        unsigned long ctbl_size = ctbl.size();
+        uint64 ctbl_size = ctbl.size();
         write_single_value(os, ctbl_size);
         
         // code table content
@@ -292,15 +296,15 @@ namespace med {
         /**
          *  constant values
          */
-        unsigned long data_length;
-        unsigned long version;
-        unsigned long cascade_depth;
-        unsigned long num_trees_per_cascade_level;
-        unsigned long tree_depth;
-        unsigned long feature_pool_size;
-        unsigned long landmark_num;
-        unsigned long quantization_num;
-        float prune_thresh;
+        uint64 data_length;
+        uint64 version;
+        uint64 cascade_depth;
+        uint64 num_trees_per_cascade_level;
+        uint64 tree_depth;
+        uint64 feature_pool_size;
+        uint64 landmark_num;
+        uint64 quantization_num;
+        float32 prune_thresh;
         
         read_single_value(is, data_length);
         read_single_value(is, version);
@@ -380,7 +384,7 @@ namespace med {
         
         unsigned long split_num = static_cast<unsigned long>(std::round(pow(2, tree_depth) - 1));
         uint16 idx1, idx2;
-        float thresh;
+        float32 thresh;
         for (int r = 0; r < cascade_depth; ++ r) {
             for (int c = 0; c < num_trees_per_cascade_level; ++ c) {
                 auto &tree = sp.forests[r][c];
@@ -392,7 +396,7 @@ namespace med {
                     read_single_value(is, thresh);
                     fea.idx1 = static_cast<unsigned long>(idx1);
                     fea.idx2 = static_cast<unsigned long>(idx2);
-                    fea.thresh = thresh;
+                    fea.thresh = static_cast<float>(thresh);
                     splits.push_back(fea);
                 }
                 splits.reserve(splits.size());
@@ -406,9 +410,9 @@ namespace med {
         
         /*** code table ***/
         read_single_value(is, data_length);
-        float quantization_precision = 0.;
+        float32 quantization_precision = 0.;
         read_single_value(is, quantization_precision);
-        unsigned long ctbl_size;
+        uint64 ctbl_size;
         read_single_value(is, ctbl_size);
         
         unordered_map<int, std::vector<bool> > ctbl;
@@ -435,8 +439,8 @@ namespace med {
             std::vector<char> leaf_value_chars;
             read_char_vec(is, leaf_value_chars, data_length);
             
-            unsigned long num_leaves = static_cast<unsigned long>(std::round(pow(2, tree_depth)));
-            unsigned long offset = 0;
+            uint64 num_leaves = static_cast<unsigned long>(std::round(pow(2, tree_depth)));
+            uint64 offset = 0;
             
             for (int c = 0; c < cascade_depth; ++ c) {
                 for (int r = 0; r < num_trees_per_cascade_level; ++ r) {
@@ -465,6 +469,8 @@ namespace med {
                 }
             }
         }
+        
+        destroy_tree(huffman_tree);
     }
     
 }

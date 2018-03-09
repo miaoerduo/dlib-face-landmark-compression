@@ -65,6 +65,10 @@ namespace med {
         return root;
     }
     
+    void destroy_tree(HuffmanTree *root) {
+        delete root;
+    }
+    
     typedef std::vector<bool> code_t;
     typedef std::unordered_map<int, code_t> codetable;
     /**
