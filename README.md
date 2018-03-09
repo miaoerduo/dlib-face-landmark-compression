@@ -18,5 +18,5 @@ g++ main.cpp -o main.bin -I ./ -I DLIB_PATH/include -L DLIB_PATH/lib -ldlib -std
 
 为了方便大家的调试，这里上传一个dlib的68点landmark的原模型和使用main.cpp的代码压缩之后的模型。
 
-链接: https://pan.baidu.com/s/1pMwHtpx 密码: mqt5
+链接: https://pan.baidu.com/s/1OnT45TUHkQnqkN2h2zCc9g 密码: 22ju
 
