@@ -9,7 +9,7 @@ DLIB_PATH/include/dlib/image_processing/image_processing/shape_predictor.h
 
 修改 shape_predictor 类的成员变量的属性为public。
 
-**另外，有同学反应不能正常加载模型，后来换了dlib 19.8之后，就可以了。这里也请大家出现类似的问题注意一下。**
+**另外，有同学反映说不能正常加载模型，后来换了dlib 19.8之后，就可以了。这里也请大家出现类似的问题注意一下。**
 
 ```
 git clone https://github.com/miaoerduo/dlib-face-landmark-compression.git
