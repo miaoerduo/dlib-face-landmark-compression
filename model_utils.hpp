@@ -115,7 +115,7 @@ namespace med {
         /**
          *  save const value
          */
-        unsigned long data_length = 7 * sizeof(uint64) + sizeof(float32);
+        unsigned long long data_length = 7 * sizeof(uint64) + sizeof(float32);
         write_single_value(os, data_length);
         write_single_value(os, version);
         write_single_value(os, cascade_depth);
