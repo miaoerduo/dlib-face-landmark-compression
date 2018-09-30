@@ -14,7 +14,7 @@ DLIB_PATH/include/dlib/image_processing/image_processing/shape_predictor.h
 ```
 git clone https://github.com/miaoerduo/dlib-face-landmark-compression.git
 cd dlib-face-landmark-compression
-g++ main.cpp -o main.bin -I ./ -I DLIB_PATH/include -L DLIB_PATH/lib -ldlib -std=c++11
+g++ main.cpp -o main.bin -O2 -I ./ -I DLIB_PATH/include -L DLIB_PATH/lib -ldlib -std=c++11
 ./main.bin src_dlib_shape_predictor_model dest_model
 ```
 
