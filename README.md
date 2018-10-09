@@ -11,6 +11,17 @@ DLIB_PATH/include/dlib/image_processing/image_processing/shape_predictor.h
 
 **另外，有同学反映说不能正常加载模型，后来换了dlib 19.8之后，就可以了。这里也请大家出现类似的问题注意一下。**
 
+**请注意，压缩之后的模型，存储格式发生变化，因此是不能通过dlib原本的方式去加载的，要换成下面的方式：**
+
+```
+dlib::shape_predictor sp;
+med::load_shape_predictor_model(sp, "/path/to/compressed_model");
+```
+
+需要使用该项目的同学，只需要加`huffman.hpp`和`model_utils.hpp`加入项目中即可。
+
+编译方式如下，建议每个人先运行`main.cpp`的Demo：
+
 ```
 git clone https://github.com/miaoerduo/dlib-face-landmark-compression.git
 cd dlib-face-landmark-compression
