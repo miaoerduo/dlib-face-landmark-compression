@@ -2,7 +2,7 @@
 
 Dlib中的人脸landmark检测的模型压缩
 
-具体介绍见博客：[http://www.miaoerduo.com/c/dlib人脸关键点检测的模型分析与压缩.html]( http://www.miaoerduo.com/c/dlib人脸关键点检测的模型分析与压缩.html)
+具体介绍见博客：[https://www.miaoerduo.com/2018/01/08/dlib-landmark-model-compression/](https://www.miaoerduo.com/2018/01/08/dlib-landmark-model-compression/)
 
 使用前，需要修改dlib的源码：
 DLIB_PATH/include/dlib/image_processing/image_processing/shape_predictor.h
